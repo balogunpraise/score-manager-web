@@ -485,3 +485,226 @@ export const updateClassroom = (id: string, payload: UpdateClassroomPayload) =>
 
 export const deleteClassroom = (id: string) =>
   api.delete<BaseResponse>(`/Classroom/${id}`).then((r) => r.data);
+
+// Lecturer Availability
+export interface LecturerAvailabilityItem {
+  id: string;
+  lecturerId: string;
+  lecturerName: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface LecturerAvailabilityListResponse {
+  data: LecturerAvailabilityItem[];
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export interface LecturerAvailabilityResponse {
+  data: LecturerAvailabilityItem;
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export interface CreateLecturerAvailabilityPayload {
+  lecturerId: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface UpdateLecturerAvailabilityPayload {
+  day: number;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface BatchLecturerAvailabilityPayload {
+  lecturerId: string;
+  days: number[];
+  timeSlots: { startTime: string; endTime: string }[];
+}
+
+export const getLecturerAvailabilityByDay = (lecturerId: string, day?: number) =>
+  api.get<LecturerAvailabilityListResponse>(`/LecturerAvailability/lecturer/${lecturerId}`, { params: day !== undefined ? { day } : {} }).then((r) => r.data);
+
+export const getLecturerAvailabilityById = (id: string) =>
+  api.get<LecturerAvailabilityResponse>(`/LecturerAvailability/${id}`).then((r) => r.data);
+
+export const updateLecturerAvailability = (id: string, payload: UpdateLecturerAvailabilityPayload) =>
+  api.put<BaseResponse>(`/LecturerAvailability/${id}`, payload).then((r) => r.data);
+
+export const deleteLecturerAvailability = (id: string) =>
+  api.delete<BaseResponse>(`/LecturerAvailability/${id}`).then((r) => r.data);
+
+export const createLecturerAvailability = (payload: CreateLecturerAvailabilityPayload) =>
+  api.post<LecturerAvailabilityResponse>("/LecturerAvailability", payload).then((r) => r.data);
+
+export const batchCreateLecturerAvailability = (payload: BatchLecturerAvailabilityPayload) =>
+  api.post<BaseResponse>("/LecturerAvailability/batch", payload).then((r) => r.data);
+
+export const deleteLecturerAvailabilityByDay = (lecturerId: string, day: number) =>
+  api.delete<BaseResponse>(`/LecturerAvailability/lecturer/${lecturerId}/day/${day}`).then((r) => r.data);
+
+// Schedule Management
+export interface ScheduleItem {
+  id: string;
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  lecturerId: string;
+  lecturerName: string;
+  classroomId: string;
+  classroomName: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+  status: number;
+  academicSession: string;
+  semester: string;
+}
+
+export interface ScheduleListResponse {
+  data: ScheduleItem[];
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export interface ScheduleResponse {
+  data: ScheduleItem;
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export interface CreateSchedulePayload {
+  courseId: string;
+  lecturerId: string;
+  classroomId: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+  semester: string;
+  academicSession: string;
+}
+
+export interface UpdateSchedulePayload {
+  status: number;
+  courseId: string;
+  lecturerId: string;
+  classroomId: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+  semester: string;
+  academicSession: string;
+}
+
+export interface CheckConflictsPayload {
+  lecturerId: string;
+  classroomId: string;
+  day: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface ConflictCheckResponse {
+  isValid: boolean;
+  hasLecturerConflict: boolean;
+  hasClassroomConflict: boolean;
+  hasAvailabilityIssue: boolean;
+  conflicts: string[];
+}
+
+export interface AvailableClassroom {
+  id: string;
+  name: string;
+  building: string;
+  capacity: string;
+  type: number;
+  hasProjector: boolean;
+  isAvailable: boolean;
+  scheduleCount: string;
+}
+
+export interface LecturerSlot {
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+}
+
+export interface GetScheduleParams {
+  semester?: string;
+  academicSession?: string;
+  day?: number;
+}
+
+export interface GetLecturerScheduleParams {
+  semester?: string;
+  academicSession?: string;
+}
+
+export interface GetClassroomScheduleParams {
+  day?: number;
+}
+
+export interface GetCourseScheduleParams {
+  academicSession?: string;
+}
+
+export interface GetAvailableClassroomsParams {
+  day?: number;
+  startTime?: string;
+  endTime?: string;
+  minCapacity?: number;
+}
+
+export interface GetLecturerSlotsParams {
+  day?: number;
+  durationMinutes?: number;
+}
+
+export const getSchedules = (params?: GetScheduleParams) =>
+  api.get<ScheduleListResponse>("/Schedule", { params }).then((r) => r.data);
+
+export const createSchedule = (payload: CreateSchedulePayload) =>
+  api.post<ScheduleItem>("/Schedule", payload).then((r) => r.data);
+
+export const getScheduleById = (id: string) =>
+  api.get<ScheduleResponse>(`/Schedule/${id}`).then((r) => r.data);
+
+export const updateSchedule = (id: string, payload: UpdateSchedulePayload) =>
+  api.put<BaseResponse>(`/Schedule/${id}`, payload).then((r) => r.data);
+
+export const deleteSchedule = (id: string) =>
+  api.delete<BaseResponse>(`/Schedule/${id}`).then((r) => r.data);
+
+export const getLecturerSchedule = (lecturerId: string, params?: GetLecturerScheduleParams) =>
+  api.get<ScheduleListResponse>(`/Schedule/lecturer/${lecturerId}`, { params }).then((r) => r.data);
+
+export const getClassroomScheduleByDay = (classroomId: string, params?: GetClassroomScheduleParams) =>
+  api.get<ScheduleListResponse>(`/Schedule/classroom/${classroomId}`, { params }).then((r) => r.data);
+
+export const getCourseSchedule = (courseId: string, params?: GetCourseScheduleParams) =>
+  api.get<ScheduleListResponse>(`/Schedule/course/${courseId}`, { params }).then((r) => r.data);
+
+export const checkScheduleConflicts = (payload: CheckConflictsPayload) =>
+  api.post<ConflictCheckResponse>("/Schedule/check-conflicts", payload).then((r) => r.data);
+
+export const getAvailableClassrooms = (params?: GetAvailableClassroomsParams) =>
+  api.get<AvailableClassroom[]>("/Schedule/available-classrooms", { params }).then((r) => r.data);
+
+export const getLecturerAvailableSlots = (lecturerId: string, params?: GetLecturerSlotsParams) =>
+  api.get<LecturerSlot[]>(`/Schedule/lecturer-available-slots/${lecturerId}`, { params }).then((r) => r.data);

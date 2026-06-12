@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Score Manager",
+  title: "Course Manager",
   description: "Course management application",
 };
 

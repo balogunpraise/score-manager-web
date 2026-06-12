@@ -24,7 +24,7 @@ export default function Signup() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <span className="text-white font-semibold tracking-tight">Score Manager</span>
+          <span className="text-white font-semibold tracking-tight">Course Manager</span>
         </div>
 
         <div className="relative space-y-10">
@@ -33,7 +33,7 @@ export default function Signup() {
               Everything you need to teach better.
             </h2>
             <p className="text-indigo-200 text-base leading-relaxed max-w-xs">
-              Join educators who use Score Manager to simplify grading, streamline courses, and focus on what matters.
+              Join educators who use Course Manager to simplify grading, streamline courses, and focus on what matters.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function Signup() {
           </div>
         </div>
 
-        <p className="relative text-indigo-300/60 text-xs">© {new Date().getFullYear()} Score Manager</p>
+        <p className="relative text-indigo-300/60 text-xs">© {new Date().getFullYear()} Course Manager</p>
       </div>
 
       {/* Right Panel */}
@@ -68,7 +68,7 @@ export default function Signup() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="font-semibold text-slate-800 tracking-tight">Score Manager</span>
+            <span className="font-semibold text-slate-800 tracking-tight">Course Manager</span>
           </div>
 
           <div className="mb-9">

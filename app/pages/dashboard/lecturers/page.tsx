@@ -11,6 +11,8 @@ import {
 import AddLecturerModal from "@/app/components/lecturer/AddLecturerModal";
 import AllocateCoursesModal from "@/app/components/lecturer/AllocateCoursesModal";
 import LecturerCoursesDrawer from "@/app/components/lecturer/LecturerCoursesDrawer";
+import LecturerAvailabilityDrawer from "@/app/components/lecturer/LecturerAvailabilityDrawer";
+import LecturerScheduleDrawer from "@/app/components/schedule/LecturerScheduleDrawer";
 
 const RANK_LABELS = ["Graduate Asst.", "Asst. Lecturer", "Lecturer", "Senior Lecturer", "Assoc. Professor", "Professor"];
 const SPEC_LABELS = ["Art", "Business", "Science", "Social Sciences", "Engineering", "IT", "Humanities", "Medicine", "Mathematics"];
@@ -36,6 +38,8 @@ export default function LecturersPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [allocateLecturer, setAllocateLecturer] = useState<LecturerItem | null>(null);
   const [drawerLecturer, setDrawerLecturer] = useState<LecturerItem | null>(null);
+  const [availabilityLecturer, setAvailabilityLecturer] = useState<LecturerItem | null>(null);
+  const [scheduleLecturer, setScheduleLecturer] = useState<LecturerItem | null>(null);
 
   const fetchLecturers = useCallback(async (
     searchTerm = "", page = 1, sortField?: string, sortOrder?: "asc" | "desc"
@@ -147,6 +151,20 @@ export default function LecturersPage() {
           onClose={() => setDrawerLecturer(null)}
         />
 
+        <LecturerAvailabilityDrawer
+          open={!!availabilityLecturer}
+          lecturerId={availabilityLecturer?.id ?? ""}
+          lecturerName={availabilityLecturer?.fullName || `${availabilityLecturer?.firstName ?? ""} ${availabilityLecturer?.lastName ?? ""}`}
+          onClose={() => setAvailabilityLecturer(null)}
+        />
+
+        <LecturerScheduleDrawer
+          open={!!scheduleLecturer}
+          lecturerId={scheduleLecturer?.id ?? ""}
+          lecturerName={scheduleLecturer?.fullName || `${scheduleLecturer?.firstName ?? ""} ${scheduleLecturer?.lastName ?? ""}`}
+          onClose={() => setScheduleLecturer(null)}
+        />
+
         {/* Search */}
         <div className="relative">
           <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,6 +262,25 @@ export default function LecturersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4">
+                      <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setAvailabilityLecturer(l)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                        title="Manage availability"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setScheduleLecturer(l)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition"
+                        title="View schedule"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
                       <button
                         onClick={() => handleDelete(l.id)}
                         disabled={actionLoading === l.id}
@@ -254,6 +291,7 @@ export default function LecturersPage() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

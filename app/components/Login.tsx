@@ -42,7 +42,7 @@ export default function Login() {
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
             </svg>
           </div>
-          <span className="text-white font-semibold tracking-tight">Score Manager</span>
+          <span className="text-white font-semibold tracking-tight">Course Manager</span>
         </div>
 
         <div className="relative space-y-10">
@@ -70,7 +70,7 @@ export default function Login() {
           </div>
         </div>
 
-        <p className="relative text-indigo-300/60 text-xs">© {new Date().getFullYear()} Score Manager</p>
+        <p className="relative text-indigo-300/60 text-xs">© {new Date().getFullYear()} Course Manager</p>
       </div>
 
       {/* Right Panel */}
@@ -83,7 +83,7 @@ export default function Login() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span className="font-semibold text-slate-800 tracking-tight">Score Manager</span>
+            <span className="font-semibold text-slate-800 tracking-tight">Course Manager</span>
           </div>
 
           <div className="mb-9">

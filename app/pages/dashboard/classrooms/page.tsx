@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { getClassrooms, ClassroomItem, ClassroomType } from "@/lib/api";
 import AddClassroomModal from "@/app/components/classroom/AddClassroomModal";
 import ClassroomDetailsDrawer from "@/app/components/classroom/ClassroomDetailsDrawer";
+import ClassroomAvailabilityModal from "@/app/components/schedule/ClassroomAvailabilityModal";
 
 const getTypeLabel = (type: number) => {
   const types = ["Lecture", "Lab", "Seminar", "Auditorium"];
@@ -27,6 +28,7 @@ export default function ClassroomsPage() {
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedClassroom, setSelectedClassroom] = useState<ClassroomItem | null>(null);
+  const [showAvailability, setShowAvailability] = useState(false);
   const [filters, setFilters] = useState({
     type: "" as string,
     isAvailable: "" as string,
@@ -69,15 +71,26 @@ export default function ClassroomsPage() {
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Classrooms</h2>
             <p className="text-slate-400 text-sm">{classrooms.length} classrooms available</p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="ml-auto flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Add Classroom
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={() => setShowAvailability(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Check Availability
+            </button>
+            <button
+              onClick={() => setShowModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Add Classroom
+            </button>
+          </div>
         </div>
 
         <AddClassroomModal 
@@ -91,6 +104,11 @@ export default function ClassroomsPage() {
           open={!!selectedClassroom}
           onClose={() => setSelectedClassroom(null)}
           onUpdate={fetchClassrooms}
+        />
+
+        <ClassroomAvailabilityModal
+          open={showAvailability}
+          onClose={() => setShowAvailability(false)}
         />
 
         {/* Filters */}
