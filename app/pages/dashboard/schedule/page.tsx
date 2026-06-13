@@ -6,12 +6,12 @@ import {
   getSchedules,
   deleteSchedule,
   ScheduleItem,
+  DAYS_OF_WEEK,
 } from "@/lib/api";
 import AddScheduleModal from "@/app/components/schedule/AddScheduleModal";
 import ScheduleDetailsDrawer from "@/app/components/schedule/ScheduleDetailsDrawer";
 import ConflictCheckModal from "@/app/components/schedule/ConflictCheckModal";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const STATUS_LABELS = ["Active", "Cancelled", "Rescheduled"];
 
 export default function SchedulePage() {
@@ -142,7 +142,7 @@ export default function SchedulePage() {
               className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
             >
               <option value="">All Days</option>
-              {DAYS.map((day, index) => (
+              {DAYS_OF_WEEK.map((day, index) => (
                 <option key={index} value={index}>{day}</option>
               ))}
             </select>
@@ -191,7 +191,7 @@ export default function SchedulePage() {
                     </td>
                     <td className="px-4 py-4">
                       <div>
-                        <p className="font-medium text-slate-800">{DAYS[s.day]}</p>
+                        <p className="font-medium text-slate-800">{DAYS_OF_WEEK[s.day]}</p>
                         <p className="text-xs text-slate-500">
                           {formatTime(s.startTime)} - {formatTime(s.endTime)}
                         </p>

@@ -6,9 +6,8 @@ import {
   getAvailableClassrooms,
   ScheduleItem,
   AvailableClassroom,
+  DAYS_OF_WEEK,
 } from "@/lib/api";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface Props {
   open: boolean;
@@ -54,8 +53,8 @@ export default function ClassroomAvailabilityModal({ open, onClose }: Props) {
     try {
       const res = await getAvailableClassrooms({
         day: selectedDay,
-        startTime: new Date(`1970-01-01T${startTime}:00Z`).toISOString(),
-        endTime: new Date(`1970-01-01T${endTime}:00Z`).toISOString(),
+        startTime: `${startTime}:00`,
+        endTime: `${endTime}:00`,
         minCapacity: minCapacity ? Number(minCapacity) : undefined,
       });
       setAvailableRooms(res);
@@ -134,7 +133,7 @@ export default function ClassroomAvailabilityModal({ open, onClose }: Props) {
                     onChange={(e) => setSelectedDay(Number(e.target.value))}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
                   >
-                    {DAYS.map((day, index) => (
+                    {DAYS_OF_WEEK.map((day, index) => (
                       <option key={index} value={index}>{day}</option>
                     ))}
                   </select>
@@ -159,7 +158,7 @@ export default function ClassroomAvailabilityModal({ open, onClose }: Props) {
                   <p className="text-center text-slate-400 text-sm py-8">No schedules found for this classroom.</p>
                 ) : (
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-3">{DAYS[selectedDay]} Schedule</h3>
+                    <h3 className="font-semibold text-slate-900 mb-3">{DAYS_OF_WEEK[selectedDay]} Schedule</h3>
                     <div className="space-y-2">
                       {classroomSchedules.map((s) => (
                         <div key={s.id} className="p-3 rounded-lg border border-slate-200 bg-slate-50">
@@ -198,7 +197,7 @@ export default function ClassroomAvailabilityModal({ open, onClose }: Props) {
                     onChange={(e) => setSelectedDay(Number(e.target.value))}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 bg-slate-50/50 transition"
                   >
-                    {DAYS.map((day, index) => (
+                    {DAYS_OF_WEEK.map((day, index) => (
                       <option key={index} value={index}>{day}</option>
                     ))}
                   </select>

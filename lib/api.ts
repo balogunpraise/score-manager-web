@@ -556,6 +556,7 @@ export const deleteLecturerAvailabilityByDay = (lecturerId: string, day: number)
   api.delete<BaseResponse>(`/LecturerAvailability/lecturer/${lecturerId}/day/${day}`).then((r) => r.data);
 
 // Schedule Management
+export const DAYS_OF_WEEK = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] as const;
 export interface ScheduleItem {
   id: string;
   courseId: string;
@@ -596,8 +597,8 @@ export interface CreateSchedulePayload {
   day: number;
   startTime: string;
   endTime: string;
-  semester: string;
-  academicSession: string;
+  semester?: number;
+  academicSession?: string;
 }
 
 export interface UpdateSchedulePayload {
@@ -608,8 +609,8 @@ export interface UpdateSchedulePayload {
   day: number;
   startTime: string;
   endTime: string;
-  semester: string;
-  academicSession: string;
+  semester?: number;
+  academicSession?: string;
 }
 
 export interface CheckConflictsPayload {
@@ -679,8 +680,29 @@ export interface GetLecturerSlotsParams {
 export const getSchedules = (params?: GetScheduleParams) =>
   api.get<ScheduleListResponse>("/Schedule", { params }).then((r) => r.data);
 
+export interface CreateScheduleResponse {
+  data: {
+    courseId: string;
+    course: string;
+    lecturerId: string;
+    lecturer: string;
+    classroomId: string;
+    classRoom: string;
+    day: number;
+    startTime: string;
+    endTime: string;
+    status: number;
+    academicSession: string;
+    semester: string;
+  };
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
 export const createSchedule = (payload: CreateSchedulePayload) =>
-  api.post<ScheduleItem>("/Schedule", payload).then((r) => r.data);
+  api.post<CreateScheduleResponse>("/Schedule", payload).then((r) => r.data);
 
 export const getScheduleById = (id: string) =>
   api.get<ScheduleResponse>(`/Schedule/${id}`).then((r) => r.data);

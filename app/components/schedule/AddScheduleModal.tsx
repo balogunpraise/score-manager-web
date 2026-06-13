@@ -9,9 +9,8 @@ import {
   CourseItem,
   LecturerItem,
   ClassroomItem,
+  DAYS_OF_WEEK,
 } from "@/lib/api";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface Props {
   open: boolean;
@@ -53,10 +52,19 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
     setLoading(true);
     try {
       const res = await createSchedule({
-        ...form,
-        startTime: new Date(`1970-01-01T${form.startTime}:00Z`).toISOString(),
-        endTime: new Date(`1970-01-01T${form.endTime}:00Z`).toISOString(),
+        courseId: form.courseId,
+        lecturerId: form.lecturerId,
+        classroomId: form.classroomId,
+        day: form.day,
+        startTime: `${form.startTime}:00`,
+        endTime: `${form.endTime}:00`,
+        semester: form.semester !== "" ? Number(form.semester) : undefined,
+        academicSession: form.academicSession || undefined,
       });
+      if (!res.succeeded) {
+        const msg = res.errors?.find(Boolean) || res.message || "Failed to create schedule";
+        throw new Error(msg);
+      }
       setForm(EMPTY);
       onSuccess();
       onClose();
@@ -138,7 +146,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
                 onChange={(e) => setForm({ ...form, day: Number(e.target.value) })}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
               >
-                {DAYS.map((day, index) => (
+                {DAYS_OF_WEEK.map((day, index) => (
                   <option key={index} value={index}>{day}</option>
                 ))}
               </select>
@@ -169,13 +177,12 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Semester</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Semester <span className="text-slate-300">(optional)</span></label>
               <input
-                type="text"
-                required
-                placeholder="Fall 2024"
+                type="number"
+                placeholder="e.g. 1"
                 value={form.semester}
                 onChange={(e) => setForm({ ...form, semester: e.target.value })}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
@@ -183,10 +190,9 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Academic Session</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Academic Session <span className="text-slate-300">(optional)</span></label>
               <input
                 type="text"
-                required
                 placeholder="2024/2025"
                 value={form.academicSession}
                 onChange={(e) => setForm({ ...form, academicSession: e.target.value })}

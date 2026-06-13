@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { checkScheduleConflicts, getAvailableClassrooms } from "@/lib/api";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+import { checkScheduleConflicts, getAvailableClassrooms, DAYS_OF_WEEK } from "@/lib/api";
 
 interface Props {
   open: boolean;
@@ -37,13 +35,13 @@ export default function ConflictCheckModal({ open, onClose }: Props) {
       const [conflictRes, roomsRes] = await Promise.all([
         checkScheduleConflicts({
           ...form,
-          startTime: new Date(`1970-01-01T${form.startTime}:00Z`).toISOString(),
-          endTime: new Date(`1970-01-01T${form.endTime}:00Z`).toISOString(),
+          startTime: `${form.startTime}:00`,
+          endTime: `${form.endTime}:00`,
         }),
         getAvailableClassrooms({
           day: form.day,
-          startTime: new Date(`1970-01-01T${form.startTime}:00Z`).toISOString(),
-          endTime: new Date(`1970-01-01T${form.endTime}:00Z`).toISOString(),
+          startTime: `${form.startTime}:00`,
+          endTime: `${form.endTime}:00`,
         }),
       ]);
       
@@ -114,7 +112,7 @@ export default function ConflictCheckModal({ open, onClose }: Props) {
                   onChange={(e) => setForm({ ...form, day: Number(e.target.value) })}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 bg-slate-50/50 transition"
                 >
-                  {DAYS.map((day, index) => (
+                  {DAYS_OF_WEEK.map((day, index) => (
                     <option key={index} value={index}>{day}</option>
                   ))}
                 </select>

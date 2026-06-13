@@ -21,7 +21,11 @@ export default function Login() {
       if (!res.succeeded) throw new Error(res.message || res.errors?.[0]);
       setToken(res.data.token);
       const role = res.data.role?.toLowerCase();
-      router.push(role === "admin" ? "/pages/dashboard/overview" : "/pages/student/overview");
+      router.push(
+        role === "admin" ? "/pages/dashboard/overview" :
+        role === "lecturer" ? "/pages/lecturer/overview" :
+        "/pages/student/overview"
+      );
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

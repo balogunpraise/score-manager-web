@@ -6,9 +6,8 @@ import {
   getLecturerAvailableSlots,
   ScheduleItem,
   LecturerSlot,
+  DAYS_OF_WEEK,
 } from "@/lib/api";
-
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface Props {
   open: boolean;
@@ -173,7 +172,7 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs text-slate-600">
-                        <span>{DAYS[s.day]}</span>
+                        <span>{DAYS_OF_WEEK[s.day]}</span>
                         <span>{formatTime(s.startTime)} - {formatTime(s.endTime)}</span>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">{s.classroomName}</p>
@@ -193,7 +192,7 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
                     onChange={(e) => setSelectedDay(Number(e.target.value))}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
                   >
-                    {DAYS.map((day, index) => (
+                    {DAYS_OF_WEEK.map((day, index) => (
                       <option key={index} value={index}>{day}</option>
                     ))}
                   </select>
@@ -245,7 +244,7 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
                           {slot.isAvailable ? "Available" : "Busy"}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">{DAYS[selectedDay]}</p>
+                      <p className="text-xs text-slate-500 mt-1">{DAYS_OF_WEEK[selectedDay]}</p>
                     </div>
                   ))
                 )}

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ScheduleItem, updateSchedule } from "@/lib/api";
+import { ScheduleItem, updateSchedule, DAYS_OF_WEEK } from "@/lib/api";
 
-const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const STATUS_LABELS = ["Active", "Cancelled", "Rescheduled"];
 
 interface Props {
@@ -44,10 +43,10 @@ export default function ScheduleDetailsDrawer({ open, schedule, onClose, onUpdat
         lecturerId: schedule.lecturerId,
         classroomId: schedule.classroomId,
         day: schedule.day,
-        startTime: new Date(`1970-01-01T${form.startTime}:00Z`).toISOString(),
-        endTime: new Date(`1970-01-01T${form.endTime}:00Z`).toISOString(),
-        semester: schedule.semester,
-        academicSession: schedule.academicSession,
+        startTime: `${form.startTime}:00`,
+        endTime: `${form.endTime}:00`,
+        semester: schedule.semester ? Number(schedule.semester) : undefined,
+        academicSession: schedule.academicSession || undefined,
       });
       if (!res.succeeded) throw new Error(res.message || res.errors?.[0]);
       setEditing(false);
@@ -107,7 +106,7 @@ export default function ScheduleDetailsDrawer({ open, schedule, onClose, onUpdat
 
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Day</label>
-              <p className="text-slate-900 font-medium">{DAYS[schedule.day]}</p>
+              <p className="text-slate-900 font-medium">{DAYS_OF_WEEK[schedule.day]}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
