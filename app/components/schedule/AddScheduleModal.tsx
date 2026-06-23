@@ -6,11 +6,19 @@ import {
   getCourses,
   getLecturers,
   getClassrooms,
+  getAcademicSessions,
   CourseItem,
   LecturerItem,
   ClassroomItem,
+  AcademicSession,
   DAYS_OF_WEEK,
 } from "@/lib/api";
+
+const SEMESTERS = [
+  { label: "First", value: 1 },
+  { label: "Second", value: 2 },
+  { label: "First & Second", value: 3 },
+];
 
 interface Props {
   open: boolean;
@@ -26,6 +34,7 @@ const EMPTY = {
   startTime: "",
   endTime: "",
   semester: "",
+  academicSessionId: "",
   academicSession: "",
 };
 
@@ -34,6 +43,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
   const [courses, setCourses] = useState<CourseItem[]>([]);
   const [lecturers, setLecturers] = useState<LecturerItem[]>([]);
   const [classrooms, setClassrooms] = useState<ClassroomItem[]>([]);
+  const [sessions, setSessions] = useState<AcademicSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,6 +53,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
       getCourses({ PageSize: 100 }).then((r) => setCourses(r.data?.items ?? [])),
       getLecturers({ PageSize: 100 }).then((r) => setLecturers(r.data?.items ?? [])),
       getClassrooms().then((r) => setClassrooms(r.data ?? [])),
+      getAcademicSessions().then((r) => { if (r.succeeded) setSessions(r.data); }),
     ]);
   }, [open]);
 
@@ -59,6 +70,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
         startTime: `${form.startTime}:00`,
         endTime: `${form.endTime}:00`,
         semester: form.semester !== "" ? Number(form.semester) : undefined,
+        academicSessionId: form.academicSessionId || undefined,
         academicSession: form.academicSession || undefined,
       });
       if (!res.succeeded) {
@@ -128,11 +140,11 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
               <select
                 required
                 value={form.classroomId}
-                onChange={(e) => setForm({ ...form, classroomId: e.target.value })}
+                onChange={(e) => setForm((f) => ({ ...f, classroomId: e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
               >
                 <option value="">Select Classroom</option>
-                {classrooms.filter(c => c.isAvailable).map((c) => (
+                {classrooms.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} ({c.building}) - {c.capacity} seats</option>
                 ))}
               </select>
@@ -160,7 +172,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
                 type="time"
                 required
                 value={form.startTime}
-                onChange={(e) => setForm({ ...form, startTime: e.target.value })}
+                onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
               />
             </div>
@@ -171,7 +183,7 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
                 type="time"
                 required
                 value={form.endTime}
-                onChange={(e) => setForm({ ...form, endTime: e.target.value })}
+                onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))}
                 className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
               />
             </div>
@@ -180,24 +192,33 @@ export default function AddScheduleModal({ open, onClose, onSuccess }: Props) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Semester <span className="text-slate-300">(optional)</span></label>
-              <input
-                type="number"
-                placeholder="e.g. 1"
+              <select
                 value={form.semester}
                 onChange={(e) => setForm({ ...form, semester: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
-              />
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
+              >
+                <option value="">Select Semester</option>
+                {SEMESTERS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Academic Session <span className="text-slate-300">(optional)</span></label>
-              <input
-                type="text"
-                placeholder="2024/2025"
-                value={form.academicSession}
-                onChange={(e) => setForm({ ...form, academicSession: e.target.value })}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
-              />
+              <select
+                value={form.academicSessionId}
+                onChange={(e) => {
+                  const selected = sessions.find((s) => s.id === e.target.value);
+                  setForm({ ...form, academicSessionId: e.target.value, academicSession: selected?.sessionCode ?? "" });
+                }}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 bg-slate-50/50 transition"
+              >
+                <option value="">Select Session</option>
+                {sessions.map((s) => (
+                  <option key={s.id} value={s.id}>{s.sessionCode}</option>
+                ))}
+              </select>
             </div>
           </div>
 

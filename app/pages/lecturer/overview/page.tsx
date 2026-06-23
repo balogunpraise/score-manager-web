@@ -2,6 +2,8 @@
 
 import LecturerLayout from "@/app/components/LecturerLayout";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getCurrentUser, getLecturerSchedule, type ScheduleItem } from "@/lib/api";
 
 const stats = [
   {
@@ -72,11 +74,14 @@ const recentActivity = [
   { student: "Elena Marsh",  course: "Web Development",       action: "Score below 50% on Quiz",  time: "2d ago",  avatar: "EM", urgent: true  },
 ];
 
-const todaySchedule = [
-  { time: "9:00 – 10:30 AM",  code: "CS-401",   name: "Web Development",       room: "Tech 204",  color: "indigo" },
-  { time: "2:00 – 3:00 PM",   code: "MATH-202", name: "Calculus II",           room: "Math 310",  color: "amber"  },
-  { time: "4:00 – 5:30 PM",   code: "CS-201",   name: "Intro to Programming",  room: "Lab C 201", color: "emerald" },
-];
+const scheduleColors = ["indigo", "violet", "amber", "emerald"] as const;
+
+function formatTime(t: string) {
+  const [h, m] = t.split(":").map(Number);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
+}
 
 const courseColorMap: Record<string, { bar: string; badge: string; dot: string }> = {
   indigo:  { bar: "bg-indigo-500",  badge: "bg-indigo-50 text-indigo-700",   dot: "bg-indigo-500"  },
@@ -86,6 +91,23 @@ const courseColorMap: Record<string, { bar: string; badge: string; dot: string }
 };
 
 export default function LecturerOverviewPage() {
+  const [lecturerName, setLecturerName] = useState("");
+  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
+
+  useEffect(() => {
+    getCurrentUser().then((res) => {
+      if (!res.succeeded) return;
+      const { firstName, lastName, userId } = res.data;
+      setLecturerName(`${firstName} ${lastName}`);
+      const todayDay = new Date().getDay();
+      getLecturerSchedule(userId).then((sRes) => {
+        if (sRes.succeeded) {
+          setTodaySchedule(sRes.data.filter((s) => s.day === todayDay));
+        }
+      });
+    });
+  }, []);
+
   return (
     <LecturerLayout>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -95,7 +117,7 @@ export default function LecturerOverviewPage() {
           <div className="absolute right-20 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
           <div className="relative">
             <p className="text-violet-200 text-sm font-medium">Good morning,</p>
-            <h2 className="text-2xl font-bold mt-0.5 tracking-tight">Prof. J. Harper 👋</h2>
+            <h2 className="text-2xl font-bold mt-0.5 tracking-tight">{lecturerName ? `${lecturerName} 👋` : "Welcome 👋"}</h2>
             <p className="text-violet-200 text-sm mt-1">Semester 1 · Fall 2024 · Computer Science Department</p>
             <div className="flex gap-6 mt-5">
               <div>
@@ -109,7 +131,7 @@ export default function LecturerOverviewPage() {
               </div>
               <div className="w-px bg-white/20" />
               <div>
-                <p className="text-3xl font-bold">3</p>
+                <p className="text-3xl font-bold">{todaySchedule.length}</p>
                 <p className="text-violet-200 text-xs mt-0.5">Classes Today</p>
               </div>
             </div>
@@ -179,17 +201,17 @@ export default function LecturerOverviewPage() {
             </div>
             <div className="divide-y divide-slate-50">
               {todaySchedule.map((s, i) => {
-                const cm = courseColorMap[s.color];
+                const cm = courseColorMap[scheduleColors[i % scheduleColors.length]];
                 return (
-                  <div key={i} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/60 transition-colors">
+                  <div key={s.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/60 transition-colors">
                     <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${cm.dot}`} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-slate-800">{s.name}</p>
-                      <p className="text-xs text-slate-400 truncate">{s.room}</p>
+                      <p className="text-sm font-semibold text-slate-800">{s.courseTitle}</p>
+                      <p className="text-xs text-slate-400 truncate">{s.classroomName}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-medium text-slate-600">{s.time}</p>
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cm.badge}`}>{s.code}</span>
+                      <p className="text-xs font-medium text-slate-600">{formatTime(s.startTime)} – {formatTime(s.endTime)}</p>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${cm.badge}`}>{s.courseCode}</span>
                     </div>
                   </div>
                 );

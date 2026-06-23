@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getCourses, manualAllocateCourses, CourseItem } from "@/lib/api";
+import { getCourses, getLevels, getDepartments, manualAllocateCourses, CourseAllocation, CourseItem, Level, Department } from "@/lib/api";
 
 interface Props {
   open: boolean;
@@ -13,7 +13,11 @@ interface Props {
 
 export default function AllocateCoursesModal({ open, lecturerId, lecturerName, onClose, onSuccess }: Props) {
   const [courses, setCourses] = useState<CourseItem[]>([]);
+  const [levels, setLevels] = useState<Level[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
+  const [levelMap, setLevelMap] = useState<Record<string, string>>({});
+  const [deptMap, setDeptMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,19 +25,37 @@ export default function AllocateCoursesModal({ open, lecturerId, lecturerName, o
   useEffect(() => {
     if (!open) return;
     setSelected([]);
+    setLevelMap({});
+    setDeptMap({});
     setSearch("");
-    getCourses({ PageSize: 200 }).then((r) => setCourses(r.data?.items ?? []));
+    setError("");
+    Promise.all([
+      getCourses({ PageSize: 200 }),
+      getLevels(),
+      getDepartments(),
+    ]).then(([cr, lr, dr]) => {
+      setCourses(cr.data?.items ?? []);
+      setLevels(lr.data ?? []);
+      setDepartments(dr.data ?? []);
+    });
   }, [open]);
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
+  const allFieldsSet = selected.every((id) => !!levelMap[id] && !!deptMap[id]);
+
   const handleSubmit = async () => {
-    if (!selected.length) return;
+    if (!selected.length || !allFieldsSet) return;
     setError("");
     setLoading(true);
     try {
-      const res = await manualAllocateCourses(lecturerId, selected);
+      const allocations: CourseAllocation[] = selected.map((courseId) => ({
+        courseId,
+        departmentId: deptMap[courseId],
+        levelId: levelMap[courseId],
+      }));
+      const res = await manualAllocateCourses(lecturerId, allocations);
       if (!res.succeeded) throw new Error(res.message || res.errors?.[0]);
       onSuccess();
       onClose();
@@ -81,7 +103,10 @@ export default function AllocateCoursesModal({ open, lecturerId, lecturerName, o
             />
           </div>
           {selected.length > 0 && (
-            <p className="text-xs text-indigo-600 font-medium mt-2">{selected.length} course{selected.length > 1 ? "s" : ""} selected</p>
+            <p className="text-xs text-indigo-600 font-medium mt-2">
+              {selected.length} course{selected.length > 1 ? "s" : ""} selected
+              {!allFieldsSet && <span className="text-amber-500 ml-1">· complete department &amp; level for each</span>}
+            </p>
           )}
         </div>
 
@@ -91,24 +116,50 @@ export default function AllocateCoursesModal({ open, lecturerId, lecturerName, o
           ) : filtered.map((c) => {
             const checked = selected.includes(c.id);
             return (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => toggle(c.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition ${checked ? "border-indigo-300 bg-indigo-50" : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"}`}
-              >
-                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition ${checked ? "border-indigo-600 bg-indigo-600" : "border-slate-300"}`}>
-                  {checked && (
-                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-800 truncate">{c.title}</p>
-                  <p className="text-xs text-slate-400">{c.courseCode}</p>
-                </div>
-              </button>
+              <div key={c.id} className={`rounded-xl border transition ${checked ? "border-indigo-300 bg-indigo-50" : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"}`}>
+                <button
+                  type="button"
+                  onClick={() => toggle(c.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                >
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition ${checked ? "border-indigo-600 bg-indigo-600" : "border-slate-300"}`}>
+                    {checked && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">{c.title}</p>
+                    <p className="text-xs text-slate-400">{c.courseCode}</p>
+                  </div>
+                </button>
+
+                {checked && (
+                  <div className="px-4 pb-3 grid grid-cols-2 gap-2">
+                    <select
+                      value={deptMap[c.id] ?? ""}
+                      onChange={(e) => setDeptMap((m) => ({ ...m, [c.id]: e.target.value }))}
+                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                    >
+                      <option value="">Department…</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={levelMap[c.id] ?? ""}
+                      onChange={(e) => setLevelMap((m) => ({ ...m, [c.id]: e.target.value }))}
+                      className="w-full px-3 py-2 border border-indigo-200 rounded-lg text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400"
+                    >
+                      <option value="">Level…</option>
+                      {levels.map((l) => (
+                        <option key={l.id} value={l.id}>{l.levelName} ({l.levelCode})</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
@@ -121,10 +172,10 @@ export default function AllocateCoursesModal({ open, lecturerId, lecturerName, o
           </button>
           <button
             onClick={handleSubmit}
-            disabled={loading || selected.length === 0}
+            disabled={loading || selected.length === 0 || !allFieldsSet}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition disabled:opacity-50"
           >
-            {loading ? "Allocating…" : `Allocate ${selected.length > 0 ? `(${selected.length})` : ""}`}
+            {loading ? "Allocating…" : `Allocate${selected.length > 0 ? ` (${selected.length})` : ""}`}
           </button>
         </div>
       </div>

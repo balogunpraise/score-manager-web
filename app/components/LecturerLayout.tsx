@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCurrentUser } from "@/lib/api";
 
 const nav = [
   {
@@ -46,6 +47,19 @@ const nav = [
 export default function LecturerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [lecturerName, setLecturerName] = useState("");
+
+  useEffect(() => {
+    getCurrentUser().then((res) => {
+      if (res.succeeded) {
+        setLecturerName(`${res.data.firstName} ${res.data.lastName}`);
+      }
+    }).catch(() => {});
+  }, []);
+
+  const initials = lecturerName
+    ? lecturerName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
 
   const currentPage = nav.find((n) => pathname.startsWith(n.href))?.label ?? "Lecturer Portal";
 
@@ -91,10 +105,10 @@ export default function LecturerLayout({ children }: { children: React.ReactNode
         <div className="p-4 border-t border-slate-100">
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
-              JH
+              {initials}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-800 truncate">Prof. J. Harper</p>
+              <p className="text-sm font-semibold text-slate-800 truncate">{lecturerName || "Loading..."}</p>
               <p className="text-xs text-slate-400 truncate">Lecturer · CS Dept.</p>
             </div>
           </div>
@@ -124,7 +138,7 @@ export default function LecturerLayout({ children }: { children: React.ReactNode
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-500 rounded-full" />
             </button>
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold">
-              JH
+              {initials}
             </div>
           </div>
         </header>

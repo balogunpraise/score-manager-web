@@ -1,6 +1,12 @@
 "use client";
 
 import DashboardLayout from "@/app/components/DashboardLayout";
+import { useEffect, useState } from "react";
+import {
+  getAcademicSessions,
+  createAcademicSession,
+  type AcademicSession,
+} from "@/lib/api";
 
 const stats = [
   {
@@ -82,6 +88,34 @@ const gradeColor = (g: string) => {
 };
 
 export default function OverviewPage() {
+  const [sessions, setSessions] = useState<AcademicSession[]>([]);
+  const [sessionCode, setSessionCode] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [sessionError, setSessionError] = useState("");
+
+  useEffect(() => {
+    getAcademicSessions()
+      .then((res) => { if (res.succeeded) setSessions(res.data); })
+      .catch(() => {});
+  }, []);
+
+  const handleCreate = async () => {
+    if (!sessionCode.trim()) return;
+    setCreating(true);
+    setSessionError("");
+    try {
+      const res = await createAcademicSession(sessionCode.trim());
+      if (!res.succeeded) throw new Error(res.message || res.errors?.[0]);
+      setSessionCode("");
+      const updated = await getAcademicSessions();
+      if (updated.succeeded) setSessions(updated.data);
+    } catch (err: unknown) {
+      setSessionError(err instanceof Error ? err.message : "Failed to create session");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl mx-auto">
@@ -110,6 +144,49 @@ export default function OverviewPage() {
               </div>
             );
           })}
+        </div>
+
+        {/* Academic Sessions */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100">
+            <h3 className="font-semibold text-slate-800">Academic Sessions</h3>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex gap-3">
+              <input
+                type="text"
+                placeholder="Session code (e.g., 2024/2025)"
+                value={sessionCode}
+                onChange={(e) => { setSessionCode(e.target.value); setSessionError(""); }}
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                className="flex-1 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+              />
+              <button
+                onClick={handleCreate}
+                disabled={!sessionCode.trim() || creating}
+                className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-sm font-semibold transition whitespace-nowrap"
+              >
+                {creating ? "Creating…" : "+ New Session"}
+              </button>
+            </div>
+            {sessionError && (
+              <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{sessionError}</p>
+            )}
+            {sessions.length === 0 ? (
+              <p className="text-sm text-slate-400">No sessions yet.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {sessions.map((s) => (
+                  <span
+                    key={s.id}
+                    className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100"
+                  >
+                    {s.sessionCode}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-5 gap-4">

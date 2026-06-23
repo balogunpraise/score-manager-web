@@ -347,11 +347,7 @@ export interface AllocatedCourse {
   title: string;
   description: string;
   creditHours: string;
-  level: {
-    levelName: string;
-    levelCode: string;
-    id: string;
-  };
+  level: string;
   isElective: boolean;
   isGeneralStudies: boolean;
   requiredQualification: number;
@@ -369,8 +365,17 @@ export interface AllocatedCoursesResponse {
   errors: string[];
 }
 
-export const manualAllocateCourses = (lecturerId: string, courseIds: string[]) =>
-  api.post<BaseResponse>("/CourseAllocation/manual", { lecturerId, courseIds }).then((r) => r.data);
+export const getAssignedCourses = () =>
+  api.get<AllocatedCoursesResponse>("/CourseAllocation/assigned-courses").then((r) => r.data);
+
+export interface CourseAllocation {
+  levelId: string;
+  departmentId: string;
+  courseId: string;
+}
+
+export const manualAllocateCourses = (lecturerId: string, allocations: CourseAllocation[]) =>
+  api.post<BaseResponse>("/CourseAllocation/manual", { lecturerId, allocations }).then((r) => r.data);
 
 export const getAllocatedCourses = (lecturerId: string) =>
   api.get<AllocatedCoursesResponse>(`/CourseAllocation/lecturer/${lecturerId}`).then((r) => r.data);
@@ -598,6 +603,7 @@ export interface CreateSchedulePayload {
   startTime: string;
   endTime: string;
   semester?: number;
+  academicSessionId?: string;
   academicSession?: string;
 }
 
@@ -653,8 +659,9 @@ export interface GetScheduleParams {
 }
 
 export interface GetLecturerScheduleParams {
-  semester?: string;
-  academicSession?: string;
+  LecturerId?: string;
+  Semester?: string;
+  AcademicSessionId?: string;
 }
 
 export interface GetClassroomScheduleParams {
@@ -714,7 +721,15 @@ export const deleteSchedule = (id: string) =>
   api.delete<BaseResponse>(`/Schedule/${id}`).then((r) => r.data);
 
 export const getLecturerSchedule = (lecturerId: string, params?: GetLecturerScheduleParams) =>
-  api.get<ScheduleListResponse>(`/Schedule/lecturer/${lecturerId}`, { params }).then((r) => r.data);
+  api.get<ScheduleListResponse>(`/Schedule/lecturer`, { params: { LecturerId: lecturerId, ...params } }).then((r) => r.data);
+
+export interface GetMyScheduleParams {
+  Semester?: string;
+  AcademicSessionId?: string;
+}
+
+export const getMyLecturerSchedule = (params?: GetMyScheduleParams) =>
+  api.get<ScheduleListResponse>(`/Schedule/lecturer-schedule`, { params }).then((r) => r.data);
 
 export const getClassroomScheduleByDay = (classroomId: string, params?: GetClassroomScheduleParams) =>
   api.get<ScheduleListResponse>(`/Schedule/classroom/${classroomId}`, { params }).then((r) => r.data);
@@ -730,3 +745,31 @@ export const getAvailableClassrooms = (params?: GetAvailableClassroomsParams) =>
 
 export const getLecturerAvailableSlots = (lecturerId: string, params?: GetLecturerSlotsParams) =>
   api.get<LecturerSlot[]>(`/Schedule/lecturer-available-slots/${lecturerId}`, { params }).then((r) => r.data);
+
+// Academic Sessions
+export interface AcademicSession {
+  id: string;
+  sessionCode: string;
+}
+
+export interface AcademicSessionsResponse {
+  data: AcademicSession[];
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export interface CreateAcademicSessionResponse {
+  data: boolean;
+  statusCode: string;
+  succeeded: boolean;
+  message: string;
+  errors: string[];
+}
+
+export const getAcademicSessions = () =>
+  api.get<AcademicSessionsResponse>("/Semester/sessions").then((r) => r.data);
+
+export const createAcademicSession = (sessionCode: string) =>
+  api.post<CreateAcademicSessionResponse>("/Semester/sessions", { sessionCode }).then((r) => r.data);

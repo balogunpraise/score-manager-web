@@ -4,10 +4,18 @@ import { useState, useEffect } from "react";
 import {
   getLecturerSchedule,
   getLecturerAvailableSlots,
+  getAcademicSessions,
   ScheduleItem,
   LecturerSlot,
+  AcademicSession,
   DAYS_OF_WEEK,
 } from "@/lib/api";
+
+const SEMESTERS = [
+  { label: "First", value: "1" },
+  { label: "Second", value: "2" },
+  { label: "First & Second", value: "3" },
+];
 
 interface Props {
   open: boolean;
@@ -19,8 +27,9 @@ interface Props {
 export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName, onClose }: Props) {
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [availableSlots, setAvailableSlots] = useState<LecturerSlot[]>([]);
+  const [sessions, setSessions] = useState<AcademicSession[]>([]);
   const [semester, setSemester] = useState("");
-  const [academicSession, setAcademicSession] = useState("");
+  const [academicSessionId, setAcademicSessionId] = useState("");
   const [selectedDay, setSelectedDay] = useState(0);
   const [duration, setDuration] = useState(120);
   const [loading, setLoading] = useState(false);
@@ -29,16 +38,16 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
 
   useEffect(() => {
     if (!open || !lecturerId) return;
-    fetchSchedule();
-  }, [open, lecturerId, semester, academicSession]);
+    getAcademicSessions().then((r) => { if (r.succeeded) setSessions(r.data); }).catch(() => {});
+  }, [open, lecturerId]);
 
   const fetchSchedule = async () => {
     setLoading(true);
     setError("");
     try {
       const res = await getLecturerSchedule(lecturerId, {
-        semester: semester || undefined,
-        academicSession: academicSession || undefined,
+        Semester: semester || undefined,
+        AcademicSessionId: academicSessionId || undefined,
       });
       if (!res.succeeded) throw new Error(res.message || res.errors?.[0]);
       setSchedules(res.data);
@@ -67,11 +76,10 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
   };
 
   const formatTime = (time: string) => {
-    return new Date(time).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+    const [h, m] = time.split(":").map(Number);
+    const suffix = h >= 12 ? "PM" : "AM";
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, "0")} ${suffix}`;
   };
 
   if (!open) return null;
@@ -121,24 +129,26 @@ export default function LecturerScheduleDrawer({ open, lecturerId, lecturerName,
             <div className="space-y-4">
               {/* Filters */}
               <div className="space-y-3">
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Semester (e.g., Fall 2024)"
-                    value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Academic Session (e.g., 2024/2025)"
-                    value={academicSession}
-                    onChange={(e) => setAcademicSession(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
-                  />
-                </div>
+                <select
+                  value={semester}
+                  onChange={(e) => setSemester(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                >
+                  <option value="">Select Semester</option>
+                  {SEMESTERS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+                <select
+                  value={academicSessionId}
+                  onChange={(e) => setAcademicSessionId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                >
+                  <option value="">Select Academic Session</option>
+                  {sessions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.sessionCode}</option>
+                  ))}
+                </select>
                 <button
                   onClick={fetchSchedule}
                   className="w-full px-3 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition"
