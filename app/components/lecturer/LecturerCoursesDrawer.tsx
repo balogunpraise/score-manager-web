@@ -161,7 +161,7 @@ export default function LecturerCoursesDrawer({ open, lecturerId, lecturerName, 
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-sm font-semibold text-slate-800">{c.title}</p>
-                        <p className="text-xs text-slate-400">{c.courseCode} · {c.level?.levelName ?? "—"}</p>
+                        <p className="text-xs text-slate-400">{c.courseCode} · {c.level ?? "—"}</p>
                       </div>
                       <button
                         onClick={() => { setReassignTarget(c); setToLecturerId(""); }}
